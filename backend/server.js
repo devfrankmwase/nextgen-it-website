@@ -1,67 +1,49 @@
-// backend/server.js
+// server.js
 import express from "express";
-import mongoose from "mongoose";
 import cors from "cors";
-import path from "path";
 import dotenv from "dotenv";
+import path from "path";
 import { fileURLToPath } from "url";
 
-// ------------------------
-// Fix __dirname for ES modules
-// ------------------------
+// Load environment variables
+dotenv.config();
+
+// Fix __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// ------------------------
-// Load environment variables
-// ------------------------
-dotenv.config();
-
-// ------------------------
-// Import routes
-// ------------------------
-import messageRoutes from "./routes/messages.js";
-
-// ------------------------
-// Initialize Express app
-// ------------------------
 const app = express();
 
-// ------------------------
 // Middleware
-// ------------------------
 app.use(cors());
-app.use(express.json());
+app.use(express.json()); // for parsing application/json
 
-// ------------------------
-// MongoDB connection
-// ------------------------
-const mongoURI = process.env.MONGO_URI || "mongodb://localhost:27017/nextgen-it";
+// Example: API route for contacts
+// Make sure you have ./routes/contacts.js or define inline
+// import contactRoutes from "./routes/contacts.js";
+// app.use("/api/contacts", contactRoutes);
 
-mongoose.connect(mongoURI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-.then(() => console.log("✅ MongoDB connected"))
-.catch((err) => console.error("❌ MongoDB connection error:", err));
+// Or inline example:
+app.post("/api/contacts", (req, res) => {
+  const { name, email, message } = req.body;
+  if (!name || !email || !message) {
+    return res.status(400).json({ error: "All fields are required!" });
+  }
+  console.log("Contact message received:", req.body);
+  return res.status(200).json({ message: "Message sent successfully ✅" });
+});
 
-// ------------------------
-// API Routes
-// ------------------------
-app.use("/api/messages", messageRoutes);
-
-// ------------------------
-// Serve React frontend
-// ------------------------
+// Serve frontend static files
 app.use(express.static(path.join(__dirname, "../frontend/build")));
 
-// For all other routes, serve React's index.html
+// React Router fallback — must come AFTER all API routes
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "../frontend/build", "index.html"));
 });
 
-// ------------------------
-// Start server
-// ------------------------
+// Port
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
