@@ -53,10 +53,10 @@ app.use("/api/messages", messageRoutes);
 // ------------------------
 // Serve React frontend
 // ------------------------
-app.use(express.static(path.join(__dirname, "../frontend/dist")));
+app.use(express.static(path.join(__dirname, "../frontend/build")));
 
 // For all other routes, serve React's index.html
-app.get("/*", (req, res) => {
+app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "../frontend/build", "index.html"));
 });
 
