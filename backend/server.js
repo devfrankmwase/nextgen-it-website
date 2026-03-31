@@ -1,60 +1,44 @@
+// backend/server.js
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
-import Message from "./models/Message.js"; // ensure this is exported correctly
+import path from "path";
+import dotenv from "dotenv";
+
+// Import your routes
+import messageRoutes from "./routes/messages.js";
+
+dotenv.config();
 
 const app = express();
-const PORT = 5000;
 
-app.use(express.json());
-app.use(cors());
+// Middleware
+app.use(cors());                 // Allow requests from frontend
+app.use(express.json());          // Parse JSON bodies
+app.use(express.static(path.join(__dirname, "frontend/build")));
 
-
-// CONNECT TO MONGO
-mongoose.connect("mongodb://127.0.0.1:27017/nextgenit", {
-  // no need for useNewUrlParser or useUnifiedTopology in Mongoose 7+
+// Connect to MongoDB
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
 })
-.then(() => console.log("MongoDB connected ✅"))
-.catch(err => console.error("MongoDB connection error:", err));
+.then(() => console.log("✅ MongoDB connected"))
+.catch(err => console.error("❌ MongoDB connection error:", err));
 
-app.get("/", (req, res) => {
-  res.send("API is running 🚀");
-});
+// API Routes
+app.use("/api/messages", messageRoutes);
 
-// ROUTE TO SAVE CONTACT MESSAGE
-app.post("/api/contacts", async (req, res) => {
-  console.log("🔥 Request received");
-  console.log("📦 Body:", req.body);
+// Serve React frontend in production
+const __dirname = path.resolve();
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static(path.join(__dirname, "frontend/build")));
 
-  try {
-    const { name, email, message } = req.body;
+  // All other requests serve the React app
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, "frontend/build", "index.html"));
+  });
+}
 
-    if (!name || !email || !message) {
-      console.log("❌ Missing fields");
-      return res.status(400).json({ error: "All fields are required" });
-    }
-
-    // ✅ FIX: make sure model works
-    const newMessage = new Message({
-      name,
-      email,
-      message,
-    });
-
-    console.log("💾 Saving...");
-    await newMessage.save();
-
-    console.log("✅ Saved");
-
-    res.status(201).json({ message: "Saved successfully" });
-
-  } catch (error) {
-    console.error("🔥 ERROR:", error.message); // 👈 THIS IS KEY
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// START SERVER
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// Start server
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
