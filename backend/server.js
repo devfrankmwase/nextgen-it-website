@@ -17,6 +17,7 @@ app.use(cors());                 // Allow requests from frontend
 app.use(express.json());          // Parse JSON bodies
 app.use(express.static(path.join(__dirname, "frontend/build")));
 
+const mongoURI = process.env.MONGO_URI || "mongodb://localhost:27017/nextgen-it";
 // Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
