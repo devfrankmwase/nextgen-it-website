@@ -4,42 +4,64 @@ import mongoose from "mongoose";
 import cors from "cors";
 import path from "path";
 import dotenv from "dotenv";
+import { fileURLToPath } from "url";
 
-// Import your routes
-import messageRoutes from "./routes/messages.js";
+// ------------------------
+// Fix __dirname for ES modules
+// ------------------------
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
+// ------------------------
+// Load environment variables
+// ------------------------
 dotenv.config();
 
+// ------------------------
+// Import routes
+// ------------------------
+import messageRoutes from "./routes/messages.js";
+
+// ------------------------
+// Initialize Express app
+// ------------------------
 const app = express();
 
+// ------------------------
 // Middleware
-app.use(cors());                 // Allow requests from frontend
-app.use(express.json());          // Parse JSON bodies
-app.use(express.static(path.join(__dirname, "frontend/build")));
+// ------------------------
+app.use(cors());
+app.use(express.json());
 
+// ------------------------
+// MongoDB connection
+// ------------------------
 const mongoURI = process.env.MONGO_URI || "mongodb://localhost:27017/nextgen-it";
-// Connect to MongoDB
-mongoose.connect(process.env.MONGO_URI, {
+
+mongoose.connect(mongoURI, {
   useNewUrlParser: true,
-  useUnifiedTopology: true
+  useUnifiedTopology: true,
 })
 .then(() => console.log("✅ MongoDB connected"))
-.catch(err => console.error("❌ MongoDB connection error:", err));
+.catch((err) => console.error("❌ MongoDB connection error:", err));
 
+// ------------------------
 // API Routes
+// ------------------------
 app.use("/api/messages", messageRoutes);
 
-// Serve React frontend in production
-const __dirname = path.resolve();
-if (process.env.NODE_ENV === "production") {
-  app.use(express.static(path.join(__dirname, "frontend/build")));
+// ------------------------
+// Serve React frontend
+// ------------------------
+app.use(express.static(path.join(__dirname, "../frontend/dist")));
 
-  // All other requests serve the React app
-  app.get("*", (req, res) => {
-    res.sendFile(path.join(__dirname, "frontend/build", "index.html"));
-  });
-}
+// For all other routes, serve React's index.html
+app.get("/*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../frontend/build", "index.html"));
+});
 
+// ------------------------
 // Start server
+// ------------------------
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

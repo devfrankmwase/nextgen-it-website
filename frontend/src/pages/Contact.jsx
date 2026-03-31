@@ -37,7 +37,7 @@ const handleSubmit = async (e) => {
     setLoading(true);
 
   try {
-    await axios.post("http://localhost:5000/api/contacts", formData);
+    await axios.post("/api/messages", formData);
     toast.success("Message sent successfully ✅");
 
     setFormData({
@@ -113,8 +113,9 @@ const handleSubmit = async (e) => {
               />
               <button
                 type="submit"
-                className="bg-[#F5C627] text-[#1c1c1c] font-bold py-3 rounded-lg
-                           hover:scale-105 transition transform disabled:opacity-50 flex justify-center items-center gap-2"
+                  disabled={loading}
+                     className="bg-[#F5C627] text-[#1c1c1c] font-bold py-3 rounded-lg
+             hover:scale-105 transition transform disabled:opacity-50 flex justify-center items-center gap-2"
               >
                  {loading && <span className="loader border-t-2 border-b-2 border-white rounded-full w-5 h-5 animate-spin"></span>}
                 {loading ? "Sending..." : "Send Message"}
